@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>우리만의 제비뽑기</title>
+<style>
+  body { 
+    font-family: 'Apple SD Gothic Neo', sans-serif; 
+    text-align: center; 
+    background-color: #f4f4f9; 
+    padding: 20px; 
+    margin: 0; 
+  }
+  h2 { color: #333; margin-bottom: 20px; }
+  
+  /* 인원 설정 창 */
+  .controls { 
+    background: white; 
+    padding: 15px; 
+    border-radius: 12px; 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+    margin-bottom: 20px;
+    font-size: 16px;
+  }
+  input { 
+    width: 50px; 
+    padding: 8px; 
+    font-size: 16px; 
+    text-align: center; 
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    margin: 0 5px;
+  }
+  button { 
+    width: 100%;
+    padding: 12px; 
+    font-size: 18px; 
+    font-weight: bold; 
+    color: white; 
+    background-color: #28a745; 
+    border: none; 
+    border-radius: 10px; 
+    cursor: pointer; 
+    margin-top: 15px;
+    box-shadow: 0 4px 6px rgba(40,167,69,0.3);
+  }
+  button:active { 
+    background-color: #218838; 
+    transform: scale(0.98); 
+  }
+  
+  /* 제비(카드) 컨테이너 */
+  .lots-container { 
+    display: flex; 
+    flex-wrap: wrap; 
+    justify-content: center; 
+    gap: 12px; 
+    margin-top: 20px; 
+  }
+  
+  /* 개별 제비(카드) 디자인 */
+  .lot { 
+    width: 70px; 
+    height: 100px; 
+    background-color: #007bff; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-size: 20px; 
+    font-weight: bold; 
+    border-radius: 8px; 
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2); 
+    transition: transform 0.4s, background-color 0.4s; 
+    user-select: none; 
+    color: white;
+  }
+  /* 안 뽑은 카드 기본 상태 */
+  .lot .text { display: none; }
+  .lot .question { display: block; font-size: 30px; }
+
+  /* 카드가 뒤집혔을 때 */
+  .lot.opened { 
+    transform: rotateY(180deg); 
+  }
+  .lot.opened .text { 
+    display: block; 
+    transform: rotateY(180deg); /* 글씨가 거꾸로 보이지 않게 다시 뒤집기 */
+  }
+  .lot.opened .question { display: none; }
+
+  /* 결과별 색상 */
+  .lot.opened.win { background-color: #dc3545; } /* 당첨(벌칙)은 빨간색 */
+  .lot.opened.lose { background-color: #6c757d; } /* 꽝은 회색 */
+</style>
+</head>
+<body>
+
+  <h2>🎟️ 두근두근 제비뽑기</h2>
+  
+  <div class="controls">
+    <label>전체 인원: <input type="number" id="total" value="5" min="2" max="30"></label> 명 <br><br>
+    <label>당첨(벌칙): <input type="number" id="winCount" value="1" min="1" max="29"></label> 개 <br>
+    <button onclick="startGame()">새로 섞기!</button>
+  </div>
+
+  <div class="lots-container" id="lotsContainer"></div>
+
+  <script>
+    let results = [];
+
+    function startGame() {
+      const total = parseInt(document.getElementById('total').value);
+      const winCount = parseInt(document.getElementById('winCount').value);
+      const container = document.getElementById('lotsContainer');
+      
+      if (winCount >= total) {
+        alert("당첨(벌칙) 개수가 전체 인원보다 적어야 해!");
+        return;
+      }
+
+      // 제비 배열 만들기
+      results = Array(total).fill('통과');
+      for (let i = 0; i < winCount; i++) {
+        results[i] = '당첨!';
+      }
+
+      // 배열 섞기 (랜덤 셔플)
+      for (let i = results.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [results[i], results[j]] = [results[j], results[i]];
+      }
+
+      // 화면에 제비 카드 깔기
+      container.innerHTML = '';
+      for (let i = 0; i < total; i++) {
+        const lot = document.createElement('div');
+        lot.className = 'lot';
+        
+        // 카드 앞면(?)과 뒷면(결과) 세팅
+        lot.innerHTML = `
+          <span class="question">?</span>
+          <span class="text">${results[i]}</span>
+        `;
+        
+        // 카드 클릭(터치) 이벤트
+        lot.onclick = function() {
+          if (this.classList.contains('opened')) return; // 이미 연 것은 클릭 안 됨
+          
+          this.classList.add('opened');
+          
+          if (results[i] === '당첨!') {
+            this.classList.add('win');
+          } else {
+            this.classList.add('lose');
+          }
+        };
+        
+        container.appendChild(lot);
+      }
+    }
+
+    // 처음 로딩 시 카드 섞어서 깔아두기
+    startGame();
+  </script>
+</body>
+</html>
