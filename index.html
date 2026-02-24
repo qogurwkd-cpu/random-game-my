@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>우리만의 제비뽑기</title>
+<title>오늘의 행운아 제비뽑기</title>
 <style>
   body { 
     font-family: 'Apple SD Gothic Neo', sans-serif; 
@@ -88,19 +88,20 @@
     transform: rotateY(180deg); /* 글씨가 거꾸로 보이지 않게 다시 뒤집기 */
   }
   .lot.opened .question { display: none; }
-
+  
   /* 결과별 색상 */
-  .lot.opened.win { background-color: #dc3545; } /* 당첨(벌칙)은 빨간색 */
-  .lot.opened.lose { background-color: #6c757d; } /* 꽝은 회색 */
+  .lot.opened.win { background-color: #dc3545; } /* 꽝은 빨간색 */
+  .lot.opened.lose { background-color: #6c757d; } /* 통과는 회색 */
+  .lot.opened.exemption { background-color: #ffc107; color: #333; } /* 🌟 면제는 눈부신 황금색! */
 </style>
 </head>
 <body>
 
-  <h2>🎟️ 두근두근 제비뽑기</h2>
+  <h2>오늘의 행운아 제비뽑기</h2>
   
   <div class="controls">
     <label>전체 인원: <input type="number" id="total" value="5" min="2" max="30"></label> 명 <br><br>
-    <label>당첨(벌칙): <input type="number" id="winCount" value="1" min="1" max="29"></label> 개 <br>
+    <label>꽝 갯수: <input type="number" id="winCount" value="1" min="1" max="29"></label> 개 <br>
     <button onclick="startGame()">새로 섞기!</button>
   </div>
 
@@ -115,42 +116,50 @@
       const container = document.getElementById('lotsContainer');
       
       if (winCount >= total) {
-        alert("당첨(벌칙) 개수가 전체 인원보다 적어야 해!");
+        alert("꽝 개수가 전체 인원보다 적어야 해!");
         return;
       }
 
-      // 제비 배열 만들기
+      // 1. 기본 세팅 (전부 통과로 채우고, 꽝 개수만큼 넣기)
       results = Array(total).fill('통과');
       for (let i = 0; i < winCount; i++) {
-        results[i] = '당첨!';
+        results[i] = '꽝!';
       }
 
-      // 배열 섞기 (랜덤 셔플)
+      // 🎯 2. 함정카드(면제!) 50% 확률 로직 추가!
+      // 전체 인원이 10명 이상이고, 랜덤 숫자가 0.5 미만(50% 확률)일 때
+      if (total >= 10 && Math.random() < 0.5) {
+        // 꽝이 세팅된 바로 다음 자리(원래 '통과'인 자리)를 '면제!'로 바꿈
+        results[winCount] = '면제!';
+      }
+
+      // 3. 배열 섞기 (랜덤 셔플)
       for (let i = results.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [results[i], results[j]] = [results[j], results[i]];
       }
 
-      // 화면에 제비 카드 깔기
+      // 4. 화면에 제비 카드 깔기
       container.innerHTML = '';
       for (let i = 0; i < total; i++) {
         const lot = document.createElement('div');
         lot.className = 'lot';
         
-        // 카드 앞면(?)과 뒷면(결과) 세팅
         lot.innerHTML = `
           <span class="question">?</span>
           <span class="text">${results[i]}</span>
         `;
         
-        // 카드 클릭(터치) 이벤트
         lot.onclick = function() {
-          if (this.classList.contains('opened')) return; // 이미 연 것은 클릭 안 됨
+          if (this.classList.contains('opened')) return; 
           
           this.classList.add('opened');
           
-          if (results[i] === '당첨!') {
+          // 결과에 맞춰서 배경색(클래스) 입혀주기
+          if (results[i] === '꽝!') {
             this.classList.add('win');
+          } else if (results[i] === '면제!') {
+            this.classList.add('exemption'); // 🌟 황금색 클래스 적용!
           } else {
             this.classList.add('lose');
           }
